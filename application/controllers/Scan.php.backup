@@ -1,0 +1,292 @@
+<?php
+defined('BASEPATH') or exit('No direct script access allowed');
+
+class Scan extends CI_Controller
+{
+
+	public function __construct()
+	{
+		parent::__construct();
+		$this->load->model('Admin_model');
+		$this->load->model('Absensi_model');
+		$this->load->helper('jarak_helper');
+		// $this->load->model('Siswa_model');
+	}
+
+	public function index()
+	{
+		$data['title'] = 'SCAN QR CODE';
+		$data['user'] = $this->db->get_where('user', ['email' => $this->session->userdata('email')])->row_array();
+
+		$this->load->view('templates/header', $data);
+		$this->load->view('templates/sidebar', $data);
+		$this->load->view('templates/topbar', $data);
+		$this->load->view('scan/index', $data);
+		$this->load->view('templates/footer');
+
+		$lat = $this->input->post('lat');
+		$lng = $this->input->post('long');
+		
+		$lat_karnas = '-6.95444774752054';
+		$long_karnas = '108.46938142360476';
+
+		$point1 = array("lat" => $lat, "long" => $lng);
+        $point2 = array("lat" => $lat_karnas, "long" =>$long_karnas );
+		$jarak_default = $this->db->get_where('data_jarak', ['status' => 1])->row_array();
+		$distance = hitung_jarak($point1['lat'], $point1['long'], $point2['lat'], $point2['long']);
+
+		$jarak = $distance['meters'];
+		if ($jarak > $jarak_default['jarak']) {
+			$this->session->set_flashdata('message_absen', '<script>
+                     swal({
+                title: "STATUS LOKASI",
+                text: "Absensi Tidak Bisa Dilakukan Ketika Lokasi Anda Berada Lebih Dari 100 Meter Dengan Pusat Absensi / Lingkungan SMK Karya Nasional Kuningan! \n\n Lokasi Anda Sekarang: ' . $jarak . ' Meter Dari Pusat Absensi.",
+                icon: "warning",
+                button: "OK"
+                // timer: 3000
+            });
+                </script>');
+			redirect('siswa');
+		}
+		
+	}
+
+	public function km()
+	{
+		$data['title'] = 'SCAN QR CODE UNTUK SISWA';
+		$data['user'] = $this->db->get_where('user', ['email' => $this->session->userdata('email')])->row_array();
+
+		$this->load->view('templates/header', $data);
+		$this->load->view('templates/sidebar', $data);
+		$this->load->view('templates/topbar', $data);
+		$this->load->view('scan/km', $data);
+		$this->load->view('templates/footer');
+
+		$lat = $this->input->post('lat');
+		$lng = $this->input->post('long');
+		
+		$lat_karnas = '-6.95444774752054';
+		$long_karnas = '108.46938142360476';
+
+		$point1 = array("lat" => $lat, "long" => $lng);
+        $point2 = array("lat" => $lat_karnas, "long" =>$long_karnas );
+        $distance = hitung_jarak($point1['lat'], $point1['long'], $point2['lat'], $point2['long']);
+
+		if ($distance['meters'] < 100) {
+			$this->session->set_flashdata('message_absen', '<script>
+			swal({
+			title: "STATUS LOKASI",
+			text: "Lokasi Anda Tidak Boleh Kurang Dari 100 Meter Dengan Lokasi Absensi, Lokasi Anda Sekarang: ' . $distance['meters'] . ' Meter Dari Pusat Absen",
+			icon: "warning",
+			button: "OK"
+			// timer: 3000
+		});
+			</script>');
+			redirect('siswa');
+		} 
+	}
+
+	public function guru()
+	{
+		$data['title'] = 'SCAN QR CODE UNTUK GURU';
+		$data['user'] = $this->db->get_where('user', ['email' => $this->session->userdata('email')])->row_array();
+
+		$this->load->view('templates/header', $data);
+		$this->load->view('templates/sidebar', $data);
+		$this->load->view('templates/topbar', $data);
+		$this->load->view('scan/guru', $data);
+		$this->load->view('templates/footer');
+
+		$lat = $this->input->post('lat');
+		$lng = $this->input->post('long');
+
+		$lat_karnas = '-6.95444774752054';
+		$long_karnas = '108.46938142360476';
+
+		$point1 = array("lat" => $lat, "long" => $lng);
+        $point2 = array("lat" => $lat_karnas, "long" =>$long_karnas );
+        $distance = hitung_jarak($point1['lat'], $point1['long'], $point2['lat'], $point2['long']);
+
+			if ($distance['meters'] < 100) {
+				$this->session->set_flashdata('message_absen', '<script>
+                swal({
+                title: "STATUS LOKASI",
+                text: "Lokasi Anda Tidak Boleh Kurang Dari 100 Meter Dengan Lokasi Absensi, Lokasi Anda Sekarang: ' . $distance['meters'] . ' Meter Dari Pusat Absen",
+                icon: "warning",
+                button: "OK"
+                // timer: 3000
+            });
+                </script>');
+				redirect('guru');
+			} 
+	}
+
+	public function absen()
+    {
+        $hasil_scan = $this->input->post('qr');
+        $today = date('D');
+        // $scan = $this->db->query("SELECT * FROM qr where qr_token = '" . $hasil_scan . "'")->num_rows();
+        $scan = $this->Absensi_model->getKodeScan($hasil_scan)->num_rows();
+        if ($scan == 1) {
+            $user_id = $this->input->post('user_id');
+            $this->Absensi_model->getSiswaById($user_id);
+
+            $cek_holiday = $this->Absensi_model->get_holiday_by_date(date('Y-m-d'))->num_rows();
+            // Logika Pemilihan Absensi
+            if ($today=='Sat' || $today == 'Sun' || $cek_holiday != 0) {
+               $this->Absensi_model->absen_holiday();
+            }
+			else{
+				$this->Absensi_model->absen();
+		   }
+            // $this->session->set_flashdata('message', '<div class="alert alert-success" role="danger">Absen Berhasil</div>');
+            // redirect('user');
+            
+        } elseif ($scan == 0) {
+            // $this->session->set_flashdata('message_absen', '<div class="alert alert-danger" role="danger">Qr tidak valid</div>');
+            $this->session->set_flashdata('message', '<script>
+                     swal({
+                title: "QR Code Status",
+                text: "QR Token Tidak Valid",
+                icon: "error",
+                button: "Ok"
+                // timer: 3000
+            });
+                </script>');
+            redirect('siswa');
+        }
+    }
+
+
+	public function mapel()
+    {
+        $hasil_scan = $this->input->post('qr');
+        $today = date('D');
+        // $scan = $this->db->query("SELECT * FROM qr where qr_token = '" . $hasil_scan . "'")->num_rows();
+        $scan = $this->Absensi_model->getRoomByQr($hasil_scan)->num_rows();
+		$data_ruangan = $this->Absensi_model->getRoomByQr($hasil_scan)->row_array();
+		$cek_ruangan = $this->db->query("SELECT * FROM student_room_history where room_id = '".$data_ruangan['room_id']."' AND is_done = '0'")->num_rows();
+		$user = $this->db->get_where('user', ['email' => $this->session->userdata('email')])->row_array();
+		$cek_data_room_history = $this->db->query("SELECT * FROM student_room_history WHERE  teacher_id = '".$user['id']."' AND date LIKE '".date('Y-m-d')."%' AND is_done = '0'")->num_rows();
+		
+        if ($cek_ruangan>0) {
+			$this->session->set_flashdata('message', '<script>
+						swal({
+					title: "Ruangan Penuh",
+					text: "Ruangan sedang di pakai, harap pakai ruangan yang lain!",
+					icon: "error",
+					button: "Ok"
+					// timer: 3000
+				});
+					</script>');
+				redirect('guru');
+		}elseif ($cek_data_room_history < 0) {
+			$this->session->set_flashdata('message', '<script>
+						swal({
+					title: "Status Pembelajaran",
+					text: "Sesi Pembelajaran Anda Masih Ada, Silahkan Akhiri Sesi Pembelajaran Sebelumnya Jika Ingin Membuka Sesi Pembelajaran Baru!",
+					icon: "error",
+					button: "Ok"
+					// timer: 3000
+				});
+					</script>');
+				redirect('guru');
+		} else{
+			if ($scan == 1) {
+				$user_id = $this->input->post('user_id');
+				
+				$this->Absensi_model->getSiswaById($user_id);
+				$this->Absensi_model->mapel();
+				
+				// $this->session->set_flashdata('message', '<div class="alert alert-success" role="danger">Absen Berhasil</div>');
+				// redirect('user');
+				
+			} elseif ($scan == 0) {
+				// $this->session->set_flashdata('message_absen', '<div class="alert alert-danger" role="danger">Qr tidak valid</div>');
+				$this->session->set_flashdata('message', '<script>
+						swal({
+					title: "QR Code Status",
+					text: "QR Token Tidak Valid",
+					icon: "error",
+					button: "Ok"
+					// timer: 3000
+				});
+					</script>');
+				redirect('guru');
+			}
+		}
+    }
+
+	public function kelas(){
+		$hasil_scan = $this->input->post('qr');
+		$kelas = $this->input->post('kelas');
+        $today = date('D');
+        // $scan = $this->db->query("SELECT * FROM qr where qr_token = '" . $hasil_scan . "'")->num_rows();
+        $scan = $this->Absensi_model->getRoomByQr($hasil_scan)->num_rows();
+		$data_ruangan = $this->Absensi_model->getRoomByQr($hasil_scan)->row_array();
+		$cek_ruangan = $this->db->query("SELECT * FROM student_room_history where room_id = '".$data_ruangan['room_id']."' AND is_done = '0'")->num_rows();
+
+		$cek_ruangan = $this->db->query("SELECT * FROM student_room_history where room_id = '".$data_ruangan['room_id']."' AND date LIKE '".date('Y-m-d')."%' AND is_done = '0'")->num_rows();
+
+		$data_room_history = $this->db->query("SELECT * FROM student_room_history WHERE class = '".$kelas."' AND date LIKE '".date('Y-m-d')."%' AND is_done = '0'")->row_array();
+		$cek_data_room_history = $this->db->query("SELECT * FROM student_room_history WHERE  class != '-' AND room_id = '".$data_ruangan['room_id']."' AND date LIKE '".date('Y-m-d')."%' AND is_done = '0'")->num_rows();
+		$cek_kelas = $this->db->query("SELECT * FROM student_room_absent WHERE room_history_id = '".$data_room_history['id']."'")->num_rows();
+
+        if ($cek_kelas != 0) {
+			$this->session->set_flashdata('message', '<script>
+						swal({
+					title: "Absensi Ruangan",
+					text: "Kelas anda masih dalam proses pembelajaran, harap konfirmasi selesai terlebih dahulu sebelum menlanjutkan pembelajaran baru!",
+					icon: "error",
+					button: "Ok"
+					// timer: 3000
+				});
+					</script>');
+				redirect('siswa');
+		}elseif ($cek_ruangan==0) {
+			$this->session->set_flashdata('message', '<script>
+						swal({
+					title: "Absensi Ruangan",
+					text: "Ruangan Belum di Buka Oleh Guru, Harap Tunggu Guru Mapel Terlebih Dahulu!",
+					icon: "error",
+					button: "Ok"
+					// timer: 3000
+				});
+					</script>');
+				redirect('siswa');
+		}elseif ($cek_data_room_history != 0) {
+			$this->session->set_flashdata('message', '<script>
+						swal({
+					title: "Absensi Ruangan",
+					text: "Ruangan tersebut sedang di pakai oleh Kelas Lain!",
+					icon: "error",
+					button: "Ok"
+					// timer: 3000
+				});
+					</script>');
+				redirect('siswa');
+		} else{
+			if ($scan == 1) {
+
+				$this->Absensi_model->absen_kelas();
+				
+				// $this->session->set_flashdata('message', '<div class="alert alert-success" role="danger">Absen Berhasil</div>');
+				// redirect('user');
+				
+			} elseif ($scan == 0) {
+				// $this->session->set_flashdata('message_absen', '<div class="alert alert-danger" role="danger">Qr tidak valid</div>');
+				$this->session->set_flashdata('message', '<script>
+						swal({
+					title: "QR Code Status",
+					text: "QR Token Tidak Valid",
+					icon: "error",
+					button: "Ok"
+					// timer: 3000
+				});
+					</script>');
+				redirect('siswa');
+			}
+		}
+	}
+
+}

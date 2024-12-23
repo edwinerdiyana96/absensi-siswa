@@ -1,0 +1,93 @@
+<div class="container-fluid">
+	<div class="row text-center mt-2">
+		<div class="col-md-12">
+			<?= $this->session->flashdata('message_absen'); ?>
+		</div>
+	</div>
+
+	<div class="alert alert-primary" role="alert">
+		Kamu adalah <i>administrator</i> kelas, silahkan klik tombol MASUK KELAS untuk memindai <b>QR CODE</b> dan masuk ke kelas yang dituju! <a href="#" class="alert-link"><button type="button" class="btn btn-primary"> MASUK KELAS </button></a>
+	</div>
+
+	<div class="row gutters-sm">
+
+		<div class="col-xl-6 col-md-6 ">
+			<!-- Area Chart -->
+			<div class="card shadow mb-4">
+				<div class="card-header py-3">
+					<h6 class="m-0 font-weight-bold text-primary">Profil Siswa</h6>
+				</div>
+				<div class="card-body">
+					<div class="tab-content" id="nav-tabContent">
+						<div class="tab-pane fade show active" id="nav-profile" role="tabpanel" aria-labelledby="nav-profile-tab">
+
+							<div class="row gutters-sm">
+
+								<div class="col-md-5">
+									<div class="card mb-0">
+										<div class="card-body mb-4">
+											<div class="d-flex flex-column align-items-center text-center">
+												<img src="<?= base_url('assets/img/profile/') . $user['image'] ?>" alt="Profile Photo" class="rounded-circle" width="150" height="150">
+
+												<div class="mt-2">
+													<h6 class="text-muted font-size-sm align-items-center text-center" style="color:black; display: inline-block; text-align:center;"></h6>
+													<hr>
+													<h6 class="text-muted font-size-sm align-items-center text-center" style="color:black; display: inline-block; text-align:center;"> EDWIN ERDIYANA </h6>
+												</div>
+											</div>
+										</div>
+									</div>
+								</div>
+								<div class="col-md-7">
+									<div class="card mb-0">
+										<div class="card-body">
+											<div class="row">
+												<div class="col-sm-5">
+													<h6 class="mt-1">KELAS:</h6>
+												</div>
+												<div class="col-sm-7 text-secondary">
+													X TKJ 1
+												</div>
+											</div>
+											<hr>
+											<div class="row">
+												<div class="col-sm-5">
+													<h6 class="mt-1">NIS: </h6>
+												</div>
+												<div class="col-sm-7 text-secondary">
+													20160810024
+												</div>
+											</div>
+											<hr>
+											<div class="row">
+												<div class="col-sm-5">
+													<h6 class="mt-0">Gender: </h6>
+												</div>
+												<div class="col-sm-7 text-secondary">
+													Laki-laki
+												</div>
+											</div>
+											<hr>
+											<div class="row">
+												<div class="col-sm-5">
+													<h6 class="mt-0">No. HP:</h6>
+												</div>
+												<div class="col-sm-7 text-secondary">
+													083823237979
+												</div>
+											</div>
+										</div>
+									</div>
+								</div>
+							</div>
+						</div>
+					</div>
+				</div>
+			</div>
+		</div>
+	</div>
+</div>
+
+</div>
+</div>
+</div>

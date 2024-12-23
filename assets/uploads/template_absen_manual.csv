@@ -1,0 +1,7 @@
+Format Import Data Absensi Manual SMK Karya Nasional Kuningan;;;;;;;;
+ Status Absensi : Hadir Tepat Waktu (1), Hadir Telat (2), Sakit (3), Izin (4) | Jika Siswa Tidak Hadir, Isi Jam Masuk Secara Default (00:00);;;;;;;;
+Tahun;Bulan;Tanggal;Nama;Nis;Kelas;Jam Masuk;Status Absensi;Deskripsi/Keterangan
+2022;10;28;AGI UBAIDILAH;192010032026;XII TPBO;08:00;1;-
+2022;10;29;AGI UBAIDILAH;192010032026;XII TPBO;08:00;1;-
+2022;10;30;AGI UBAIDILAH;192010032026;XII TPBO;08:50;2;-
+2022;10;31;AGI UBAIDILAH;192010032026;XII TPBO;00:00;3;Sakit Bisul
